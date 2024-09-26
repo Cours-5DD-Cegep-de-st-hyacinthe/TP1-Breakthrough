@@ -1,15 +1,14 @@
 package com.kleblanc.breakthrough_backend.controller;
 
-import com.kleblanc.breakthrough_backend.model.Board;
-import com.kleblanc.breakthrough_backend.model.Move;
-import com.kleblanc.breakthrough_backend.model.Tuple;
-import com.kleblanc.breakthrough_backend.model.iMove;
+import com.kleblanc.breakthrough_backend.model.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequestMapping("/board")
 @RestController
 public class BreakthroughController {
@@ -20,14 +19,14 @@ public class BreakthroughController {
         this.board = board;
     }
 
-    @PutMapping("/newgame")
-    public void newGame() {
-        this.board.resetGame();
+    @GetMapping("/")
+    public int[][] board(HttpSession session, HttpServletRequest request) {
+        return this.board.getBoard();
     }
 
-    @GetMapping("/")
-    public int[][] board() {
-        return this.board.getBoard();
+    @PutMapping("/newgame")
+    public void newGame(HttpSession session, HttpServletRequest request) {
+        this.board.resetGame();
     }
 
     @GetMapping("/string")
@@ -40,8 +39,13 @@ public class BreakthroughController {
         return this.board.getLegalMoves();
     }
 
+    @GetMapping("/gamestatus")
+    public GameStatus gameStatus() {
+        return this.board.getCurrentGameStatus().makeGameStatus();
+    }
+
     @PatchMapping("/makemove")
-    public Tuple<Boolean, Object> executeMove(@RequestBody Move move) {
+    public ExecutedMoveStatus executeMove(@RequestBody Move move) {
         boolean moveSuccess = board.executeMove(move);
 
         Object status;
@@ -51,7 +55,7 @@ public class BreakthroughController {
             status = "Illegal move";
         }
 
-        return new Tuple<>(moveSuccess, status);
+        return new ExecutedMoveStatus(moveSuccess, status);
     }
 
     @GetMapping("/playedmoves")

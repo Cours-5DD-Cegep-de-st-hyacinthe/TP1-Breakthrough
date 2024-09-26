@@ -1,30 +1,37 @@
-import { useState } from "react";
-import api from "../api/axiosConfig";
+import './Board.css'
+import Square from './Square';
+import { Set, Map } from 'immutable';
 
-const Board = () => {
-    const [serverState, setServerState] = useState("Le serveur n'est pas connecté");
+const Chessboard = ({ board, legalMoves, highlightedSquare, onClickPiece, onClickSquare }) => {
+  let movablePieces = Set();
 
-    async function tryConnect(event) {
-        try{
-            const response = await api.get("/", {
-                signal: AbortSignal.timeout(5000)
-            });
-    
-            setServerState(response.data);
-        } catch {
-            setServerState("Serveur a timeout");
-        }
-        
-    }
+  for (const move of legalMoves) {
+    movablePieces = movablePieces.add(Map({x: move.source.x, y: move.source.y}));
+  }
 
-    return(
-        <div>
-            <h1>{serverState}</h1>
-            <button onClick={tryConnect}>
-                Essayer de se connecter
-            </button>
+  return (
+    <div className='layout-board'>
+        <div className='spacer'/>
+        <div className="chessboard">
+            {board.map((row, rowIndex) => (
+                <div key={rowIndex} className="board-row">
+                    {row.map((piece, colIndex) => (
+                        <Square 
+                            key={colIndex} 
+                            piece={piece} 
+                            movable={movablePieces.has(Map({x: rowIndex, y: colIndex}))} 
+                            coordinates={{x: rowIndex, y: colIndex}}
+                            highlighted={highlightedSquare.has(Map({x: rowIndex, y: colIndex}))}
+                            onClickPiece={onClickPiece}
+                            onClickSquare={onClickSquare}
+                        />
+                    ))}
+                </div>
+            ))}
         </div>
-    )
+        <div className='spacer'/>
+    </div>
+  );
 };
 
-export default Board;
+export default Chessboard;

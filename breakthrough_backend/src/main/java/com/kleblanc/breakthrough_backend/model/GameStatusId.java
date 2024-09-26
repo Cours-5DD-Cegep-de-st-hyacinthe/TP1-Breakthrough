@@ -11,7 +11,7 @@ public enum GameStatusId {
         @Override
         public int getPlayerPawn() { return 1; }
         @Override
-        public int getXMoveDirection() { return 1; }
+        public int getXMoveDirection() { return -1; }
     },
 
     TURN_BLACK {
@@ -22,7 +22,7 @@ public enum GameStatusId {
         @Override
         public int getPlayerPawn() { return 2; }
         @Override
-        public int getXMoveDirection() { return -1; }
+        public int getXMoveDirection() { return 1; }
     },
 
     WIN_WHITE  {

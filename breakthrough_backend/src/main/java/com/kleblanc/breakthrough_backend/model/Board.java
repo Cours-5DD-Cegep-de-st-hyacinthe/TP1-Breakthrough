@@ -28,14 +28,14 @@ public class Board {
 
     public void resetGame() {
         this.board = new int[][]{
-                {1, 1, 1, 1, 1, 1, 1, 1}, // x = 0
-                {1, 1, 1, 1, 1, 1, 1, 1}, // x = 1
+                {2, 2, 2, 2, 2, 2, 2, 2}, // x = 0
+                {2, 2, 2, 2, 2, 2, 2, 2}, // x = 1
                 {0, 0, 0, 0, 0, 0, 0, 0}, // x = 2
                 {0, 0, 0, 0, 0, 0, 0, 0}, // x = 3
                 {0, 0, 0, 0, 0, 0, 0, 0}, // x = 4
                 {0, 0, 0, 0, 0, 0, 0, 0}, // x = 5
-                {2, 2, 2, 2, 2, 2, 2, 2}, // x = 6
-                {2, 2, 2, 2, 2, 2, 2, 2}  // x = 7
+                {1, 1, 1, 1, 1, 1, 1, 1}, // x = 6
+                {1, 1, 1, 1, 1, 1, 1, 1}  // x = 7
         };
 
         currentGameStatus = GameStatusId.TURN_WHITE;
@@ -134,13 +134,13 @@ public class Board {
 
     public GameStatusId endTurn() {
         // Si blanc gagne la partie
-        if(Arrays.stream(board[7]).anyMatch(p -> p == GameStatusId.TURN_WHITE.getPlayerPawn()) ||
+        if(Arrays.stream(board[0]).anyMatch(p -> p == GameStatusId.TURN_WHITE.getPlayerPawn()) ||
                 Arrays.stream(board).noneMatch(r ->
                         Arrays.stream(r).anyMatch(p -> p == GameStatusId.TURN_BLACK.getPlayerPawn()))) {
             currentGameStatus = GameStatusId.WIN_WHITE;
         }
         // Si noir gagne la partie
-        else if(Arrays.stream(board[0]).anyMatch(p -> p == GameStatusId.TURN_BLACK.getPlayerPawn()) ||
+        else if(Arrays.stream(board[7]).anyMatch(p -> p == GameStatusId.TURN_BLACK.getPlayerPawn()) ||
                 Arrays.stream(board).noneMatch(r ->
                         Arrays.stream(r).anyMatch(p -> p == GameStatusId.TURN_WHITE.getPlayerPawn()))){
             currentGameStatus = GameStatusId.WIN_BLACK;
@@ -161,16 +161,16 @@ public class Board {
 
     @Override
     public String toString() {
-        String boardString = "";
+        StringBuilder boardString = new StringBuilder();
 
-        for(int i = 7; i >= 0; i--) {
+        for(int i = 0; i < 8; i++) {
             for(int cell : board[i]) {
-                boardString += cell + " ";
+                boardString.append(cell).append(" ");
             }
-            boardString += "\n";
+            boardString.append("\n");
         }
 
-        return boardString;
+        return boardString.toString();
     }
 
     private record ExecutedMove(Coordinate source, Coordinate target, int targetContent) implements iMove  {}

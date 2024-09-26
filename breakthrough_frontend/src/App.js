@@ -1,10 +1,10 @@
 import './App.css';
-import Board from "./components/Board";
+import Breakthrough from './components/Breakthrough';
 
 function App() {
   return (
     <div>
-      <Board/>
+      <Breakthrough />
     </div>
   );
 }

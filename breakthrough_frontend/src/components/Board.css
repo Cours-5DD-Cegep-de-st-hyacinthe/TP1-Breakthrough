@@ -1,0 +1,61 @@
+  .layout-board {
+    display: flex
+  }
+
+  .spacer {
+    flex-grow: 1;
+  }
+
+  .chessboard {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+  }
+
+  .board-row {
+    display: flex;
+  }
+
+  .square {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .square-black {
+    background-color: #566;
+  }
+
+  .square-white {
+    background-color: #889;
+  }
+
+  .square-black.highlighted {
+    background-color: #665;
+  }
+
+  .square-white.highlighted {
+    background-color: #998;
+  }
+
+  .piece {
+    width: 75%;
+    height: 75%;
+  }
+  
+  .piece.movable:hover {
+    width: 80%;
+    height: 80%;
+  }
+
+  .piece-1 {
+    fill: white;
+    stroke: black;
+  }
+
+  .piece-2 {
+    fill: black;
+    stroke: white;
+  }
