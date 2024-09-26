@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(originPatterns = "http://127.0.0.1:[*]", allowCredentials = "true")
 @RequestMapping("/board")
 @RestController
 public class BreakthroughController {

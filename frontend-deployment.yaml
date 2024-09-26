@@ -1,0 +1,26 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: frontend
+  template:
+    metadata:
+      labels:
+        io.kompose.service: frontend
+    spec:
+      containers:
+        - image: breakthrough_frontend-image
+          name: frontend
+          imagePullPolicy: Never 
+          ports:
+            - containerPort: 3000
+              hostPort: 3001
+              protocol: TCP
+      restartPolicy: Always
