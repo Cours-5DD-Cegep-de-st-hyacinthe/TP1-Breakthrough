@@ -27,8 +27,23 @@ Write-Host "                         \/          \/           \/                
 
 # --- Message d'avertissement -------------------------------------------------------------
 
-Write-Host "Veuillez vous assurer d'avoir fait mvn clean package dans le backend si vous avez modifie ce projet."
-Pause
+# Write-Host "Veuillez vous assurer d'avoir fait mvn clean package dans le backend si vous avez modifie ce projet."
+# Pause
+
+Set-Location ./breakthrough_backend
+try {
+    Write-Host "Tentative de build du backend..."
+    mvn clean package
+    Write-Host "Build du backend reussi"
+}
+catch {
+    Write-Host "La entative de build du backend a echoue." -ForegroundColor Red
+    Write-Host "Veuillez vous assurer d'avoir fait mvn clean package dans le backend manuellement si vous avez modifie ce projet."
+    Pause
+}
+finally {
+    Set-Location ..
+}
 
 # --- Vérification et démarrage de Docker Desktop -----------------------------------------
 
@@ -78,18 +93,6 @@ kubectl delete deployments frontend --ignore-not-found
 kubectl delete services backend --ignore-not-found
 kubectl delete services frontend --ignore-not-found
 
-# --- Création des nouveaux déploiements et services --------------------------------------
-
-Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
-
-# Appliquer les configurations des déploiements
-kubectl create -f backend-deployment.yaml
-kubectl create -f frontend-deployment.yaml
-
-# Appliquer les configurations des services
-kubectl create -f backend-service.yaml
-kubectl create -f frontend-service.yaml
-
 # --- Construction des images Docker avec minikube ----------------------------------------
 
 Write-Host "Configuration de l'environnement Docker pour minikube..."
@@ -105,14 +108,22 @@ docker build -t breakthrough_backend-image:latest .\breakthrough_backend\
 Write-Host "Construction de l'image Docker pour le frontend..."
 docker build -t breakthrough_frontend-image:latest .\breakthrough_frontend\
 
+# --- Création des nouveaux déploiements et services --------------------------------------
+
+Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
+
+# Appliquer les configurations des déploiements
+kubectl create -f backend-deployment.yaml
+kubectl create -f frontend-deployment.yaml
+
+# Appliquer les configurations des services
+kubectl create -f backend-service.yaml
+kubectl create -f frontend-service.yaml
+
 # --- Lancement des services et du port-forwarding ----------------------------------------
 
-# Démarrer le port-forwarding du service 'backend' pour accéder au port 8080
-Write-Host "Demarrage du port-forwarding pour le service backend..."
-Start-Process powershell -ArgumentList "kubectl port-forward service/backend 8080:8080"
-
 # Attendre quelques secondes pour s'assurer que le port-forwarding est établi
-Start-Sleep -Seconds 2
+# Start-Sleep -Seconds 2
 
 # Ouvrir le service frontend dans le navigateur via minikube
 Write-Host "Ouverture du service frontend via minikube..."
@@ -121,6 +132,10 @@ Start-Process powershell -ArgumentList "minikube service frontend"
 # Ouvrir le service backend dans le navigateur via minikube
 Write-Host "Ouverture du service backend via minikube..."
 Start-Process powershell -ArgumentList "minikube service backend"
+
+# Démarrer le port-forwarding du service 'backend' pour accéder au port 8080
+Write-Host "Demarrage du port-forwarding pour le service backend..."
+do{  $result = kubectl port-forward service/backend 8080:8080;} while(!($result -like "error:*"));Write-Host $result; pause;
 
 # =========================================================================================
 # Fin du script

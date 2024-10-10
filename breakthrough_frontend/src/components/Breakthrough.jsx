@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Set, Map } from 'immutable';
 import api from "../api/axiosConfig";
 import Board from './Board';
@@ -18,35 +18,46 @@ const Breakthrough = () => {
         [0,0,0,0,0,0,0,0],
       ]);
 
+      useEffect(() => {
+          const baseSubscribeUrl = "http://127.0.0.1:8080/board/subscribe"
+          
+          const boardEventSource = new EventSource(baseSubscribeUrl + "/board");
+          const legalMovesEventSource = new EventSource(baseSubscribeUrl + "/legalmoves");
+          const gameStatusEventSource = new EventSource(baseSubscribeUrl + "/gamestatus");
+  
+          boardEventSource.onmessage = (event) => {
+              const board = JSON.parse(event.data);
+              setBoard(board);
+          }
+  
+          legalMovesEventSource.onmessage = (event) => {
+              const legalMoves = JSON.parse(event.data);
+              setLegalMoves(legalMoves);
+          }
+  
+          gameStatusEventSource.onmessage = (event) => {
+              const gameStatus = JSON.parse(event.data);
+              setGameStatus(gameStatus);
+          }
+  
+           // terminating the connection on component unmount
+          return () => { 
+            boardEventSource.close();
+            legalMovesEventSource.close();
+            gameStatusEventSource.close();
+          };
+      }, []);
+
     async function startGame() {
         try {
             await api.put("/board/newgame");
-
-            await getPosition();
-
-            const rGameStatus = await api.get("/board/gamestatus");
-            setGameStatus(rGameStatus.data);
         } catch (e) {
             
         }
     }
 
-    async function getPosition() {
-        const rBoard = await api.get("/board/");    
-        setBoard(rBoard.data);
-
-        const rLegalMove = await api.get("/board/legalmoves");
-        setLegalMoves(rLegalMove.data);
-    }
-
     async function makeMove(source, target) {
-        const response = await api.patch("/board/makemove", {source: source, target: target});
-
-        if (response.data.moveSuccess === true) {
-            setGameStatus(response.data.gameStatus);
-
-            getPosition();
-        }
+        await api.patch("/board/makemove", {source: source, target: target});
     }
 
     function onClickPiece(coordinates) {
