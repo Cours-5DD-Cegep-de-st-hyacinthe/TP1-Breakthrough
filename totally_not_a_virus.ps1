@@ -88,10 +88,18 @@ Write-Host "Suppression des deploiements et services existants..."
 # Supprimer les déploiements 'backend' et 'frontend' s'ils existent
 kubectl delete deployments backend --ignore-not-found
 kubectl delete deployments frontend --ignore-not-found
+kubectl delete deployments kafka-1 --ignore-not-found
+kubectl delete deployments kafka-2 --ignore-not-found
+kubectl delete deployments zookeeper-1 --ignore-not-found
+kubectl delete deployments zookeeper-2 --ignore-not-found
 
 # Supprimer les services 'backend' et 'frontend' s'ils existent
 kubectl delete services backend --ignore-not-found
 kubectl delete services frontend --ignore-not-found
+kubectl delete services kafka-1 --ignore-not-found
+kubectl delete services kafka-2 --ignore-not-found
+kubectl delete services zookeeper-1 --ignore-not-found
+kubectl delete services zookeeper-2 --ignore-not-found
 
 # --- Construction des images Docker avec minikube ----------------------------------------
 
@@ -115,6 +123,7 @@ Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
 # Appliquer les configurations des déploiements
 kubectl create -f backend-deployment.yaml
 kubectl create -f frontend-deployment.yaml
+kubectl create -f kafka.yaml
 
 # Appliquer les configurations des services
 kubectl create -f backend-service.yaml

@@ -37,6 +37,41 @@ public enum GameStatusId {
         public GameStatus makeGameStatus() {
             return new GameStatus(4, "Noir a gagné");
         }
+    },
+
+    TIMEOUT_WHITE  {
+        @Override
+        public GameStatus makeGameStatus() {
+            return new GameStatus(5, "Blanc a timeout");
+        }
+    },
+
+    TIMEOUT_BLACK {
+        @Override
+        public GameStatus makeGameStatus() {
+            return new GameStatus(6, "Noir a timeout");
+        }
+    },
+
+    WHITE_NOT_READY  {
+        @Override
+        public GameStatus makeGameStatus() {
+            return new GameStatus(7, "Blanc n'est plus prêt");
+        }
+    },
+
+    BLACK_NOT_READY  {
+        @Override
+        public GameStatus makeGameStatus() {
+            return new GameStatus(8, "Noir n'est plus prêt");
+        }
+    },
+
+    GAME_ABORTED {
+        @Override
+        public GameStatus makeGameStatus() {
+            return new GameStatus(9, "Partie interrompue");
+        }
     };
 
     public GameStatus makeGameStatus() {

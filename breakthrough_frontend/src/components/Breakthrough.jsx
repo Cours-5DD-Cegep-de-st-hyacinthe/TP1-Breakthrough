@@ -17,13 +17,29 @@ const Breakthrough = () => {
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
       ]);
+      const [readyPlayerIds, setReadyPlayerIds] = useState([]);
+      const [selectedWhitePlayerId, setSelectedWhitePlayerId] = useState("");
+      const [selectedBlackPlayerId, setSelectedBlackPlayerId] = useState("");
+      const [moveTimeout, setMoveTimeout] = useState(3000);
 
       useEffect(() => {
+          // Aller chercher la liste des joueurs prêts
+          const fetchReadyPlayerIds = async () => {
+            const rPlayersReady = await api.get("/board/readyplayerids");
+            setReadyPlayerIds(rPlayersReady.data);
+            setSelectedWhitePlayerId(rPlayersReady.data[0]);
+            setSelectedBlackPlayerId(rPlayersReady.data[0]);
+          }
+
+          fetchReadyPlayerIds();
+
+          // Subscribe aux évènements
           const baseSubscribeUrl = "http://127.0.0.1:8080/board/subscribe"
           
           const boardEventSource = new EventSource(baseSubscribeUrl + "/board");
           const legalMovesEventSource = new EventSource(baseSubscribeUrl + "/legalmoves");
           const gameStatusEventSource = new EventSource(baseSubscribeUrl + "/gamestatus");
+          const playersReadyEventSource = new EventSource(baseSubscribeUrl + "/readyplayerids");
   
           boardEventSource.onmessage = (event) => {
               const board = JSON.parse(event.data);
@@ -39,18 +55,38 @@ const Breakthrough = () => {
               const gameStatus = JSON.parse(event.data);
               setGameStatus(gameStatus);
           }
+
+          playersReadyEventSource.onmessage = (event) => {
+            const playersReady = JSON.parse(event.data);
+            setReadyPlayerIds(playersReady);
+            setSelectedWhitePlayerId(playersReady[0]);
+            setSelectedBlackPlayerId(playersReady[0]);
+          }
   
            // terminating the connection on component unmount
           return () => { 
             boardEventSource.close();
             legalMovesEventSource.close();
             gameStatusEventSource.close();
+            playersReadyEventSource.close();
           };
       }, []);
 
     async function startGame() {
         try {
-            await api.put("/board/newgame");
+            await api.put("/board/newgame", { 
+                whitePlayerId: selectedWhitePlayerId, 
+                blackPlayerId: selectedBlackPlayerId,
+                moveTimeout: moveTimeout
+            });
+        } catch (e) {
+            
+        }
+    }
+
+    async function abortGame() {
+        try {
+            await api.patch("/board/abortgame");
         } catch (e) {
             
         }
@@ -87,8 +123,28 @@ const Breakthrough = () => {
 
     return (
         <div>
+            <label>
+                Choisir le joueur blanc: 
+                <select name="whitePlayer" value={selectedWhitePlayerId} onChange={e => setSelectedWhitePlayerId(e.target.value)}>
+                    {readyPlayerIds.map((player) => (
+                        <option key={player} value={player}>{player}</option>
+                    ))}
+                </select>
+            </label>
+            <label>
+                Choisir le joueur noir: 
+                <select name="blackPlayer" value={selectedBlackPlayerId} onChange={e => setSelectedBlackPlayerId(e.target.value)}>
+                    {readyPlayerIds.map((player) => (
+                        <option key={player} value={player}>{player}</option>
+                    ))}
+                </select>
+            </label>
+            <input type="number" value={moveTimeout} onChange={e => setMoveTimeout(e.target.value)} />
             <button onClick={startGame}>
                 Démarrer une nouvelle partie
+            </button>
+            <button onClick={abortGame}>
+                Annuler la partie
             </button>
             <p>{gameStatus.description}</p>
             <Board 

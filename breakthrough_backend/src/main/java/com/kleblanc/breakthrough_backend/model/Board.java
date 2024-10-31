@@ -1,29 +1,46 @@
 package com.kleblanc.breakthrough_backend.model;
 
 import lombok.Getter;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Component
-@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class Board {
-    // Blanc sont 1, noirs sont 2
+    // Blanc est 1, noir est 2
     // X est la première dimension, Y est la deuxième
     @Getter
     private int[][] board = new int[8][8];
     @Getter
     private GameStatusId currentGameStatus = GameStatusId.NON_INITIALIZED;
+    private Map<Integer, String> playerIds = new HashMap<>();
     private ArrayList<ExecutedMove> movesPlayed;
+    @Getter
+    @Setter
+    private int moveTimeout;
 
     private static final List<GameStatusId> gameOverStatuses = List.of(
             GameStatusId.NON_INITIALIZED,
             GameStatusId.WIN_BLACK,
             GameStatusId.WIN_WHITE);
+
+    public Board() {
+        playerIds.put(GameStatusId.TURN_WHITE.getPlayerPawn(), "");
+        playerIds.put(GameStatusId.TURN_BLACK.getPlayerPawn(), "");
+    }
+
+    public boolean getIsPlayerHuman(int pawnColor) {
+        return Objects.equals(playerIds.get(pawnColor), Constants.HUMAN_PLAYER_ID);
+    }
+
+    public String getPlayerId(int pawnColor) {
+        return playerIds.get(pawnColor);
+    }
+    
+    public void setPlayerId(int pawnColor, String playerId) {
+        playerIds.replace(pawnColor, playerId);
+    }
 
     public void resetGame() {
         this.board = new int[][]{
@@ -152,6 +169,30 @@ public class Board {
         }
 
         return currentGameStatus;
+    }
+
+    public GameStatusId abortGame() {
+        if (currentGameStatus == GameStatusId.TURN_WHITE || currentGameStatus == GameStatusId.TURN_BLACK ) {
+            currentGameStatus = GameStatusId.GAME_ABORTED;
+        }
+
+        return currentGameStatus;
+    }
+
+    public void timeoutActivePlayer() {
+        if (currentGameStatus == GameStatusId.TURN_WHITE) {
+            currentGameStatus = GameStatusId.TIMEOUT_WHITE;
+        } else if (currentGameStatus == GameStatusId.TURN_BLACK) {
+            currentGameStatus = GameStatusId.TIMEOUT_BLACK;
+        }
+    }
+
+    public void setWhitePlayerNotReady() {
+        currentGameStatus = GameStatusId.WHITE_NOT_READY;
+    }
+
+    public void setBlackPlayerNotReady() {
+        currentGameStatus = GameStatusId.BLACK_NOT_READY;
     }
 
     public List<? extends iMove> getMovesPlayed() {
