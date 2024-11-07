@@ -92,6 +92,7 @@ kubectl delete deployments kafka-1 --ignore-not-found
 kubectl delete deployments kafka-2 --ignore-not-found
 kubectl delete deployments zookeeper-1 --ignore-not-found
 kubectl delete deployments zookeeper-2 --ignore-not-found
+kubectl delete deployments ai --ignore-not-found
 
 # Supprimer les services 'backend' et 'frontend' s'ils existent
 kubectl delete services backend --ignore-not-found
@@ -100,6 +101,7 @@ kubectl delete services kafka-1 --ignore-not-found
 kubectl delete services kafka-2 --ignore-not-found
 kubectl delete services zookeeper-1 --ignore-not-found
 kubectl delete services zookeeper-2 --ignore-not-found
+kubectl delete services ai --ignore-not-found
 
 # --- Construction des images Docker avec minikube ----------------------------------------
 
