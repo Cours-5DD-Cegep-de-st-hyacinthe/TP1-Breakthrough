@@ -116,6 +116,10 @@ docker build -t breakthrough_backend-image:latest .\breakthrough_backend\
 Write-Host "Construction de l'image Docker pour le frontend..."
 docker build -t breakthrough_frontend-image:latest .\breakthrough_frontend\
 
+# Construire l'image Docker pour l'ia
+Write-Host "Construction de l'image Docker pour l'ia..."
+docker build -t breakthrough_ia-image:latest .\scalakafka
+
 # --- Création des nouveaux déploiements et services --------------------------------------
 
 Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
@@ -124,6 +128,7 @@ Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
 kubectl create -f backend-deployment.yaml
 kubectl create -f frontend-deployment.yaml
 kubectl create -f kafka.yaml
+kubectl create -f ia.yaml
 
 # Appliquer les configurations des services
 kubectl create -f backend-service.yaml
