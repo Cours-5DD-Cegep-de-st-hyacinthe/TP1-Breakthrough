@@ -49,6 +49,8 @@ public class BreakthroughController {
 
     @PutMapping("/newgame")
     public void newGame(@RequestBody StartGameRequest startGameRequest) {
+        abortGame();
+
         boardLock.lock();
         try {
             this.board.resetGame();
@@ -64,7 +66,7 @@ public class BreakthroughController {
                     startGameRequest.blackPlayerId());
             this.board.setMoveTimeout(startGameRequest.moveTimeout());
 
-            if(board.getPlayerId(GameStatusId.TURN_WHITE.getPlayerPawn()) != Constants.HUMAN_PLAYER_ID) {
+            if(!this.board.getIsPlayerHuman(GameStatusId.TURN_WHITE.getPlayerPawn())) {
                 // Wait a few seconds to allow time for IAs to register properly
                 ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
                 executorService.schedule(this::sendMoveRequestIfIATurn, 3, TimeUnit.SECONDS);
@@ -83,6 +85,7 @@ public class BreakthroughController {
             this.board.abortGame();
 
             dispatchGameToClients();
+            unassignIAs();
         } finally {
             boardLock.unlock();
         }
@@ -111,13 +114,18 @@ public class BreakthroughController {
 
             Object status;
             if (moveSuccess) {
-                // Pas de timeout pour un joueur humain
+                // Il n'y aura pas de check de timeout pour un joueur humain
                 timeoutCheckCount++;
 
                 status = board.endTurn().makeGameStatus();
 
                 dispatchGameToClients();
-                sendMoveRequestIfIATurn();
+
+                if(board.isGameInProgress()) {
+                    sendMoveRequestIfIATurn();
+                } else {
+                    unassignIAs();
+                }
             } else {
                 status = "Illegal move";
             }
@@ -269,7 +277,7 @@ public class BreakthroughController {
     // AI moves functions ----------------------------------------------------------------------------------
 
     private void sendMoveRequestIfIATurn() {
-        if(board.getPlayerId(board.getCurrentGameStatus().getPlayerPawn()) == Constants.HUMAN_PLAYER_ID)
+        if(this.board.getIsPlayerHuman(board.getCurrentGameStatus().getPlayerPawn()))
             return;
 
         breakthroughKafkaService.sendMoveRequest(board);
@@ -287,8 +295,15 @@ public class BreakthroughController {
             boolean moveSuccess = board.executeMove(move);
 
             if (moveSuccess) {
+                board.endTurn();
                 dispatchGameToClients();
-                sendMoveRequestIfIATurn();
+
+                if (board.isGameInProgress()) {
+                    sendMoveRequestIfIATurn();
+                } else {
+                    unassignIAs();
+                }
+
             }
         } finally {
             boardLock.unlock();
@@ -302,10 +317,18 @@ public class BreakthroughController {
 
             if (timeoutCheckCount > board.getMovesPlayed().size()) {
                 board.timeoutActivePlayer();
+
+                unassignIAs();
+
                 dispatchGameToClients();
             }
         } finally {
             boardLock.unlock();
         }
+    }
+
+    private void unassignIAs() {
+        breakthroughKafkaService.sendUnassingationMessage(board.getPlayerId(GameStatusId.TURN_BLACK.getPlayerPawn()));
+        breakthroughKafkaService.sendUnassingationMessage(board.getPlayerId(GameStatusId.TURN_WHITE.getPlayerPawn()));
     }
 }

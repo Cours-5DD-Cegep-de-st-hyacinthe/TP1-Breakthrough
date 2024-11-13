@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class BreakthroughKafkaService {
     private final KafkaTemplate<String, ColorAssignationMessage> colorAssignationTemplate;
@@ -31,27 +33,39 @@ public class BreakthroughKafkaService {
     }
 
     public void sendColorAssignationMessage (String whiteColorId, String blackColorId) {
-        if(whiteColorId != Constants.HUMAN_PLAYER_ID) {
+        if(!Objects.equals(whiteColorId, Constants.HUMAN_PLAYER_ID)) {
             colorAssignationTemplate.send(colorAssignationTopic, new ColorAssignationMessage(
                     whiteColorId,
                     GameStatusId.TURN_WHITE.getPlayerPawn()
             ));
         }
 
-        if(blackColorId != Constants.HUMAN_PLAYER_ID) {
+        if(!Objects.equals(blackColorId, Constants.HUMAN_PLAYER_ID)) {
             colorAssignationTemplate.send(colorAssignationTopic, new ColorAssignationMessage(
                     blackColorId,
                     GameStatusId.TURN_BLACK.getPlayerPawn()
             ));
         }
+        colorAssignationTemplate.flush();
+    }
+
+    public void sendUnassingationMessage (String playerId) {
+        if(!Objects.equals(playerId, Constants.HUMAN_PLAYER_ID)) {
+            colorAssignationTemplate.send(colorAssignationTopic, new ColorAssignationMessage(
+                    playerId,
+                    GameStatusId.NON_INITIALIZED.getPlayerPawn()
+            ));
+        }
+
+        colorAssignationTemplate.flush();
     }
 
     public void sendMoveRequest (Board board) {
-        String moveRequestTopic;
-
-        if (board.getPlayerId(board.getCurrentGameStatus().getPlayerPawn()) == Constants.HUMAN_PLAYER_ID) {
+        if (board.getIsPlayerHuman(board.getCurrentGameStatus().getPlayerPawn())) {
             throw new IllegalArgumentException("This is a human player turn");
         }
+
+        String moveRequestTopic;
 
         if (board.getCurrentGameStatus().getPlayerPawn() == GameStatusId.TURN_WHITE.getPlayerPawn()) {
             moveRequestTopic = moveRequestWhiteTopic;
@@ -66,5 +80,7 @@ public class BreakthroughKafkaService {
                 board.getBoard(),
                 board.getLegalMoves()
         ));
+
+        moveRequestMessageTemplate.flush();
     }
 }

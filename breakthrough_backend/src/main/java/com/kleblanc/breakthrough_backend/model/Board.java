@@ -20,10 +20,9 @@ public class Board {
     @Setter
     private int moveTimeout;
 
-    private static final List<GameStatusId> gameOverStatuses = List.of(
-            GameStatusId.NON_INITIALIZED,
-            GameStatusId.WIN_BLACK,
-            GameStatusId.WIN_WHITE);
+    private static final List<GameStatusId> gameInProgressStatuses = List.of(
+            GameStatusId.TURN_WHITE,
+            GameStatusId.TURN_BLACK);
 
     public Board() {
         playerIds.put(GameStatusId.TURN_WHITE.getPlayerPawn(), "");
@@ -33,6 +32,14 @@ public class Board {
     public boolean getIsPlayerHuman(int pawnColor) {
         return Objects.equals(playerIds.get(pawnColor), Constants.HUMAN_PLAYER_ID);
     }
+
+    public boolean isGameInProgress() {
+        return gameInProgressStatuses.contains(currentGameStatus);
+    }
+
+    public boolean isGameOver() {
+        return !isGameInProgress();
+    };
 
     public String getPlayerId(int pawnColor) {
         return playerIds.get(pawnColor);
@@ -65,7 +72,7 @@ public class Board {
     private ArrayList<? extends iMove> getLegalMoves(GameStatusId gameStatus) {
         ArrayList<Move> legalMoves = new ArrayList<>();
 
-        if(gameOverStatuses.contains(gameStatus)) {
+        if(isGameOver()) {
             return legalMoves;
         }
 
@@ -95,7 +102,7 @@ public class Board {
     }
 
     private boolean isMoveLegal(iMove move, GameStatusId gameStatus) {
-        if(gameOverStatuses.contains(gameStatus)) return false;
+        if(isGameOver()) return false;
         if(move.source().isOffBoard() || move.target().isOffBoard()) return false;
 
         // On peut bouger seulement son propre pion

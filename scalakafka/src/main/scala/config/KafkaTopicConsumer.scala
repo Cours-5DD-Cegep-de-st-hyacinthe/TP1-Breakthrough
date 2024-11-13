@@ -9,7 +9,9 @@ import java.util
 import scala.jdk.CollectionConverters._
 
 class KafkaTopicConsumer extends Subject[ConsumerRecord[String, String]] {
-  def consume(topic: String): Unit = {
+  private var isRunning = false
+
+  def consume(topic: String, poolingDuration: Long): Unit = {
     val props = new Properties()
     props.put("bootstrap.servers", KafkaTopicConsumer.BootstrapServers)
     props.put("key.deserializer", KafkaTopicConsumer.Deserializer)
@@ -20,13 +22,23 @@ class KafkaTopicConsumer extends Subject[ConsumerRecord[String, String]] {
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](props)
     consumer.subscribe(util.Arrays.asList(topic))
 
-    while (true) {
-      val records = consumer.poll(Duration.ofMillis(1000)).asScala
+    isRunning = true
+
+    while (isRunning) {
+      val records = consumer.poll(Duration.ofMillis(poolingDuration)).asScala
 
       for (record <- records) {
+        println(s"Received: ${record.value}")
         notifyObservers(record)
       }
     }
+
+    consumer.unsubscribe()
+    consumer.close()
+  }
+
+  def cancel(): Unit = {
+    isRunning = false
   }
 }
 

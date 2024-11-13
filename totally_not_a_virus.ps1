@@ -45,6 +45,19 @@ finally {
     Set-Location ..
 }
 
+Set-Location ./scalakafka
+try {
+    Write-Host "Tentative de build du projet Scala..."
+    sbt assembly
+    Write-Host "Build du projet Scala reussi"
+} catch {
+    Write-Host "La entative de build du projet Scala a echoue." -ForegroundColor Red
+    Write-Host "Veuillez vous assurer d'avoir fait sbt assembly dans le projet Scala manuellement si vous avez modifie ce projet."
+    Pause
+} finally {
+    Set-Location ..
+}
+
 # --- Vérification et démarrage de Docker Desktop -----------------------------------------
 
 # Vérifier si Docker Desktop est en cours d'exécution
@@ -127,9 +140,20 @@ docker build -t breakthrough_ia-image:latest .\scalakafka
 Write-Host "Creation des deploiements et services a partir des fichiers YAML..."
 
 # Appliquer les configurations des déploiements
+kubectl create -f kafka-zookeeper.yaml
+
+# Wait for zookeeper to be fully available
+Write-Host "En attente du demarrage des zookeepers"
+Start-Sleep 5
+
+kubectl create -f kafka.yaml
+
+# Wait for kafka to be fully available
+Write-Host "En attente du demarrage des serveurs Kafka"
+Start-Sleep 10
+
 kubectl create -f backend-deployment.yaml
 kubectl create -f frontend-deployment.yaml
-kubectl create -f kafka.yaml
 kubectl create -f ia.yaml
 
 # Appliquer les configurations des services
