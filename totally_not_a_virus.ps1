@@ -153,11 +153,16 @@ Write-Host "En attente du demarrage des serveurs Kafka"
 Start-Sleep 10
 
 kubectl create -f backend-deployment.yaml
+kubectl create -f backend-service.yaml
+
+# Wait for backend to be fully available
+Write-Host "En attente du demarrage du back-end"
+Start-Sleep 20
+
 kubectl create -f frontend-deployment.yaml
 kubectl create -f ia.yaml
 
 # Appliquer les configurations des services
-kubectl create -f backend-service.yaml
 kubectl create -f frontend-service.yaml
 
 # --- Lancement des services et du port-forwarding ----------------------------------------

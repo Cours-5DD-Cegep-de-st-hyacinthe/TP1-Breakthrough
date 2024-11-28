@@ -6,7 +6,8 @@ import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
 import java.util.Properties
 import java.time.Duration
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
+import scala.util.Random
 
 class KafkaTopicConsumer extends Subject[ConsumerRecord[String, String]] {
   private var isRunning = false
@@ -17,14 +18,18 @@ class KafkaTopicConsumer extends Subject[ConsumerRecord[String, String]] {
     props.put("key.deserializer", KafkaTopicConsumer.Deserializer)
     props.put("value.deserializer", KafkaTopicConsumer.Deserializer)
     props.put("auto.offset.reset", "latest")
-    props.put("group.id", "ia-id")
+    props.put("group.id", KafkaTopicConsumer.GroupID)
+
+    println(s"GroupId: ${KafkaTopicConsumer.GroupID}")
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](props)
     consumer.subscribe(util.Arrays.asList(topic))
 
+
     isRunning = true
 
     while (isRunning) {
+      println("still receiving")
       val records = consumer.poll(Duration.ofMillis(poolingDuration)).asScala
 
       for (record <- records) {
@@ -45,4 +50,5 @@ class KafkaTopicConsumer extends Subject[ConsumerRecord[String, String]] {
 object KafkaTopicConsumer {
   val BootstrapServers = "kafka-1:29092,kafka-2:39092"
   val Deserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+  val GroupID = "Random-IA" + Random.alphanumeric.take(10).mkString("")
 }
